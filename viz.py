@@ -1,17 +1,13 @@
 import duckdb
 import matplotlib.pyplot as plt
 import streamlit as st
+import plotly.express as px  # Importando plotly.express
+import time  # Importando time para medições
 
+# Conectando ao DuckDB
 conn = duckdb.connect()
 
-st.title("Streamlit + duckdb Tutorial")
-button = st.button(label="Check for a sample")
-if button:
-    #  generate_dataset_orders(filename=filename, num_rows=1000)
-    # load_file(db=db, infile_path=filename, table_name=destination_table_name)
-
-    st.write("Half-pint fall")
-
+# Criando tabela a partir do arquivo CSV
 query = """
 CREATE TABLE mytable AS
 SELECT 
@@ -25,54 +21,39 @@ FROM read_csv_auto('/Users/vandasimoes/bupa.data');
 """
 conn.execute(query)
 
-start_time = time.time()
-
-query = """
-select * 
-from mytable
-"""
-
+# Consultando os dados
+query = "SELECT * FROM mytable"
 df = conn.sql(query).df()
-df
 
-# title of the dashboard
-st.title("Streamlit + duckdb Tutorial")
-try:
-    #create a button to use
-    button = st.button(label="Check for a sample")
+# Dashboard no Streamlit
+st.title("Streamlit + duckdb Dashboard")
 
-    # if button is pressed do something
-    if button:
-        # title if button is pressed
-        st.write("## Sample")
-        # show dataframe (first 10 rows) if button is pressed.
-        st.dataframe(df.head(10), height=300)
+# Botão para amostra de dados
+if st.button(label="Show a Sample"):
+    st.write("## Sample Data")
+    st.dataframe(df.head(10), height=300)
 
-    # another title
-    st.write("## Visualization")
-    ## create a selection box with the 4 options (sepal and petal length and width)
-    option = st.selectbox(
-        "Select a dimension",
-        ["MCV", "ALP", "ALT", "AST" , "GGT", "DRINKS"],
-        key="option",
+# Visualização dos dados
+st.write("## Visualization")
+option = st.selectbox(
+    "Select a dimension (X-axis):",
+    ["MCV", "ALP", "ALT", "AST", "GGT", "DRINKS"],
+    key="option",
+)
+if option:
+    option2 = st.selectbox(
+        "Select another dimension (Y-axis):",
+        ["MCV", "ALP", "ALT", "AST", "GGT", "DRINKS"],
+        key="option2",
     )
-    # if a option is selected show something
-    if option:
-        # second option to use in double plots
-        option2 = st.selectbox(
-            "Select another dimension",
-            ["MCV", "ALP", "ALT", "AST" , "GGT", "DRINKS"],
-            key="option2",
-        )
-        # another title (is using markdown - hence the ###)
+    if option2:
         st.write(f"### Scatter Plot: {option} x {option2}")
 
-        ## create a scatter plot 
+        # Criando scatter plot
         fig = px.scatter(
             df,
             x=option,
             y=option2,
-            color="species",
-            hover_name="species",
-            log_x=True,
+            title=f"Scatter Plot: {option} vs {option2}",
         )
+        st.plotly_chart(fig)
